@@ -1,0 +1,22 @@
+[package]
+name = "pathmap"
+version = "0.1.0"
+edition = "2024"
+description = "Automatic filesystem-to-namespace mapping, ideal for zero-config i18n routing."
+license = "MIT"
+repository = "https://github.com/canmi21/pathmap"
+readme = "README.md"
+keywords = ["network", "server", "filesystem", "pathmap", "router"]
+categories = ["network-programming", "web-programming", "development-tools"]
+
+[lib]
+path = "src/lib.rs"
+crate-type = ["lib"]
+
+[[example]]
+name = "demo"
+path = "examples/demo.rs"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+fancy-log = "0.1"
