@@ -20,3 +20,8 @@ path = "examples/demo.rs"
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 fancy-log = "0.1"
+sqlx = { version = "0.8", features = ["runtime-tokio-native-tls", "sqlite"] }
+thiserror = "2"
+shellexpand = "3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1"
