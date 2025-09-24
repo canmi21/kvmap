@@ -2,7 +2,7 @@
 name = "pathmap"
 version = "0.1.2"
 edition = "2024"
-description = "Automatic filesystem-to-namespace mapping, ideal for zero-config i18n routing."
+description = "A path-driven, namespaced data store for Rust, powered by SQLite."
 license = "MIT"
 repository = "https://github.com/canmi21/pathmap"
 readme = "README.md"
