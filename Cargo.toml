@@ -1,6 +1,6 @@
 [package]
 name = "pathmap"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2024"
 description = "A path-driven, namespaced data store for Rust, powered by SQLite."
 license = "MIT"
