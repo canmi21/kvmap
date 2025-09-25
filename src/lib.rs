@@ -1,7 +1,7 @@
 /* src/lib.rs */
 
 use serde::{Serialize, de::DeserializeOwned};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
@@ -14,7 +14,17 @@ pub mod error;
 use crate::error::{PathmapError, Result};
 use sqlx::SqlitePool;
 
+/// Represents the contents of a namespace or group.
+#[derive(Debug, PartialEq, Eq)]
+pub struct Listing {
+    /// A list of sub-groups.
+    pub groups: Vec<String>,
+    /// A list of values.
+    pub values: Vec<String>,
+}
+
 /// The main struct for interacting with pathmap.
+/// A path-driven, namespaced data store for Rust, powered by SQLite.
 pub struct Pathmap {
     base_path: PathBuf,
     pools: Arc<Mutex<HashMap<String, SqlitePool>>>,
@@ -35,15 +45,70 @@ impl Pathmap {
         self
     }
 
+    /// Lists all available namespaces.
+    /// This corresponds to the .sqlite files in the base directory.
+    pub fn list_ns(&self) -> Result<Vec<String>> {
+        let mut namespaces = Vec::new();
+        if !self.base_path.exists() {
+            return Ok(namespaces);
+        }
+        for entry in std::fs::read_dir(&self.base_path)? {
+            let entry = entry?;
+            if let Some(filename_str) = entry.file_name().to_str() {
+                if let Some(ns_name) = filename_str.strip_suffix(".sqlite") {
+                    namespaces.push(ns_name.to_string());
+                }
+            }
+        }
+        namespaces.sort();
+        Ok(namespaces)
+    }
+
+    /// Lists the contents (groups and values) of a given path.
+    pub async fn list(&self, path: &str) -> Result<Listing> {
+        let (ns, prefix) = match path.split_once("::") {
+            Some((ns, group_path)) => (ns, format!("{}.", group_path)),
+            None => (path, String::new()),
+        };
+
+        let pool = self.get_pool(ns).await?;
+        let all_keys = db::list_keys(&pool, &prefix).await?;
+
+        let mut groups = HashSet::new();
+        let mut values = Vec::new();
+
+        for key in all_keys {
+            let sub_path = key.strip_prefix(&prefix).unwrap_or(&key);
+            match sub_path.split_once('.') {
+                Some((group_name, _)) => {
+                    groups.insert(group_name.to_string());
+                }
+                None => {
+                    if !sub_path.is_empty() {
+                        values.push(sub_path.to_string());
+                    }
+                }
+            }
+        }
+
+        let mut sorted_groups: Vec<String> = groups.into_iter().collect();
+        sorted_groups.sort();
+        values.sort();
+
+        Ok(Listing {
+            groups: sorted_groups,
+            values,
+        })
+    }
+
     /// Initializes a new namespace.
-    /// This creates a new SQLite file for the namespace.
     pub async fn init_ns(&self, ns: &str) -> Result<bool> {
         let db_path = self.get_db_path(ns);
         if db_path.exists() {
             return Err(PathmapError::NamespaceAlreadyExists(ns.to_string()));
         }
         let pool = db::connect(&db_path).await?;
-        let mut pools = self.pools.lock().await; // Use .await for locking
+        let mut pools = self.pools.lock().await;
         pools.insert(ns.to_string(), pool);
         Ok(true)
     }
@@ -51,7 +116,7 @@ impl Pathmap {
     /// Deletes a namespace, including its SQLite file.
     pub async fn delete_ns(&self, ns: &str) -> Result<bool> {
         {
-            let mut pools = self.pools.lock().await; // Use .await for locking
+            let mut pools = self.pools.lock().await;
             if let Some(pool) = pools.remove(ns) {
                 pool.close().await;
             }
@@ -70,7 +135,7 @@ impl Pathmap {
             .ok_or_else(|| PathmapError::InvalidPath(path.to_string()))
     }
 
-    /// Retrieves a value. The value must be deserializable into the specified type `T`.
+    /// Retrieves a value.
     pub async fn get<T: DeserializeOwned>(&self, path: &str) -> Result<T> {
         let (ns, key) = self.parse_path(path)?;
         let pool = self.get_pool(ns).await?;
@@ -79,8 +144,7 @@ impl Pathmap {
         Ok(value)
     }
 
-    /// Sets a value. The value will be serialized to JSON.
-    /// This operation will fail if the key already exists.
+    /// Sets a value, failing if the key already exists.
     pub async fn set<T: Serialize>(&self, path: &str, value: T) -> Result<()> {
         let (ns, key) = self.parse_path(path)?;
         let pool = self.get_pool(ns).await?;
@@ -91,8 +155,7 @@ impl Pathmap {
         db::set(&pool, key, &serialized_value).await
     }
 
-    /// Overwrites a value. If the key does not exist, it will be created.
-    /// If it exists, its value will be updated.
+    /// Overwrites a value. Creates it if it doesn't exist.
     pub async fn overwrite<T: Serialize>(&self, path: &str, value: T) -> Result<()> {
         let (ns, key) = self.parse_path(path)?;
         let pool = self.get_pool_or_init(ns).await?;
