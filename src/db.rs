@@ -2,9 +2,8 @@
 
 use crate::error::{PathmapError, Result};
 use sqlx::{
-    Row,
-    SqlitePool,
-    sqlite::{SqliteConnectOptions, SqlitePoolOptions}, // Import SqliteConnectOptions
+    Row, SqlitePool,
+    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
 };
 use std::path::Path;
 
@@ -90,4 +89,16 @@ pub async fn overwrite(pool: &SqlitePool, key: &str, value: &[u8]) -> Result<()>
 pub async fn vacuum(pool: &SqlitePool) -> Result<()> {
     sqlx::query("VACUUM").execute(pool).await?;
     Ok(())
+}
+
+/// Lists all keys starting with a given prefix.
+pub async fn list_keys(pool: &SqlitePool, prefix: &str) -> Result<Vec<String>> {
+    let query_pattern = format!("{}%", prefix);
+    let rows = sqlx::query("SELECT key FROM kv_store WHERE key LIKE ?")
+        .bind(query_pattern)
+        .fetch_all(pool)
+        .await?;
+
+    let keys = rows.into_iter().map(|row| row.get("key")).collect();
+    Ok(keys)
 }
