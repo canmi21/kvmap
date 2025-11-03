@@ -1,10 +1,10 @@
 [package]
-name = "pathmap"
+name = "kvmap"
 version = "0.1.5"
 edition = "2024"
 description = "A path-driven, namespaced data store for Rust, powered by SQLite."
 license = "MIT"
-repository = "https://github.com/canmi21/pathmap"
+repository = "https://github.com/canmi21/kvmap"
 readme = "README.md"
 keywords = ["network", "server", "filesystem", "pathmap", "router"]
 categories = ["network-programming", "web-programming", "development-tools"]
