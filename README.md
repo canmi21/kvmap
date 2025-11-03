@@ -1,10 +1,10 @@
-# Pathmap
+# Kvmap formerly Pathmap
 
 [![Crates.io](https://img.shields.io/crates/v/pathmap.svg)](https://crates.io/crates/pathmap)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Documentation](https://docs.rs/pathmap/badge.svg)](https://docs.rs/pathmap)
 
-Pathmap is a path-driven, namespaced data store for Rust, powered by SQLite. It provides a simple and efficient way to store and retrieve data using a path-like syntax, such as `namespace::group.key`, with support for JSON-serializable values and asynchronous operations.
+Kvmap is a path-driven, namespaced data store for Rust, powered by SQLite. It provides a simple and efficient way to store and retrieve data using a path-like syntax, such as `namespace::group.key`, with support for JSON-serializable values and asynchronous operations.
 
 ## Features
 
