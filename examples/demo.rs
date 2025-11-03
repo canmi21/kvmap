@@ -1,6 +1,6 @@
 /* examples/demo.rs */
 
-use pathmap::Pathmap;
+use kvmap::Pathmap;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
