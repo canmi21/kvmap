@@ -1,6 +1,6 @@
 /* examples/list.rs */
 
-use pathmap::{Listing, Pathmap};
+use kvmap::{Listing, Pathmap};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
