@@ -22,7 +22,7 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-pathmap = "0.1"
+kvmap = "0.1"
 ```
 
 Ensure you have the required dependencies (`tokio`, `sqlx`, etc.) as specified in the `Cargo.toml` file.
@@ -32,7 +32,7 @@ Ensure you have the required dependencies (`tokio`, `sqlx`, etc.) as specified i
 Below is a quick example demonstrating how to use Pathmap. For a complete example, see the `examples/demo.rs` file.
 
 ```rust
-use pathmap::Pathmap;
+use kvmap::Pathmap;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -76,7 +76,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ## Project Structure
 
 ```
-pathmap/
+kvmap/
 ├── examples/
 │   └── demo.rs         # Example usage of Pathmap
 ├── src/
